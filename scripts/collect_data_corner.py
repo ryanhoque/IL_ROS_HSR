@@ -9,12 +9,6 @@ SAVE_PATH = 'corner_data/'
 if not os.path.exists(SAVE_PATH):
     os.makedirs(SAVE_PATH)
 
-# print RNG output for top/bottom, success/failure
-top = np.random.rand(2)
-success = np.random.rand(2)
-print("Top (1)/Bottom (0): ", top)
-print("Success (1)/Failure (0): ", success)
-
 # Orient the robot appropriately. make sure it is starting about a foot away from the long side of the bed, facing parallel to the bed
 robot = hsrb_interface.Robot()
 whole_body = robot.get('whole_body')
@@ -27,8 +21,15 @@ whole_body.move_to_joint_positions({'arm_lift_joint': 0.120})
 # start collecting data
 rollout_num = 1 # do about 120 rollouts for decent dataset
 camera = RGBD()
+labels = list()
 while True:
 	print("rollout", rollout_num)
+	# generate random numbers for top/bottom, success/failure of rollout
+	top = np.random.rand(2)
+	success = np.random.rand(2)
+	labels.append(str(success)) # classification labels
+	print("Top (1)/Bottom (0): ", top)
+	print("Success (1)/Failure (0): ", success)
 	raw_input("press enter to take the picture")
 	c_img = camera.read_color_data()
     d_img = camera.read_depth_data()
@@ -40,4 +41,8 @@ while True:
     cv2.imwrite(os.path.join(SAVE_PATH, "rgb_" + str(rollout_num) + ".png"), c_img)
     cv2.imwrite(os.path.join(SAVE_PATH, "depth_" + str(rollout_num) + ".png"), d_img)
 	rollout_num += 1
+
+# write labels to output
+with open(os.path.join(SAVE_PATH, "labels.txt")) as fh:
+	fh.write("\n".join(labels))
 
