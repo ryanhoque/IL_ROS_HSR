@@ -22,27 +22,29 @@ whole_body.move_to_joint_positions({'arm_lift_joint': 0.120})
 rollout_num = 1 # do about 120 rollouts for decent dataset
 camera = RGBD()
 labels = list()
-while True:
-	print("rollout", rollout_num)
-	# generate random numbers for top/bottom, success/failure of rollout
-	top = np.random.rand(2)
-	success = np.random.rand(2)
-	labels.append(str(success)) # classification labels
-	print("Top (1)/Bottom (0): ", top)
-	print("Success (1)/Failure (0): ", success)
-	raw_input("press enter to take the picture")
-	c_img = camera.read_color_data()
-    d_img = camera.read_depth_data()
-    # preprocess depth image
-    if np.isnan(np.sum(d_img)):
-        cv2.patchNaNs(d_img, 0.0)
-    d_img = depth_to_net_dim(d_img, cutoff=1400)
-    # save images
-    cv2.imwrite(os.path.join(SAVE_PATH, "rgb_" + str(rollout_num) + ".png"), c_img)
-    cv2.imwrite(os.path.join(SAVE_PATH, "depth_" + str(rollout_num) + ".png"), d_img)
-	rollout_num += 1
+userinput = 'a'
+while userinput != 'q':
+    print("rollout", rollout_num)
+    # generate random numbers for top/bottom, success/failure of rollout
+    top = np.random.randint(2)
+    success = np.random.randint(2)
+    labels.append(str(success)) # classification labels
+    print("Top (1)/Bottom (0): ", top)
+    print("Success (1)/Failure (0): ", success)
+    userinput = raw_input("press enter to take the picture, or enter q to quit: ")
+    if userinput != 'q':
+        c_img = camera.read_color_data()
+        d_img = camera.read_depth_data()
+        # preprocess depth image
+        if np.isnan(np.sum(d_img)):
+            cv2.patchNaNs(d_img, 0.0)
+        d_img = depth_to_net_dim(d_img, robot="HSR")
+        # save images
+        cv2.imwrite(os.path.join(SAVE_PATH, "rgb_" + str(rollout_num) + ".png"), c_img)
+        cv2.imwrite(os.path.join(SAVE_PATH, "depth_" + str(rollout_num) + ".png"), d_img)
+        rollout_num += 1
 
 # write labels to output
-with open(os.path.join(SAVE_PATH, "labels.txt")) as fh:
-	fh.write("\n".join(labels))
+with open(os.path.join(SAVE_PATH, "labels.txt"), 'w') as fh:
+    fh.write("\n".join(labels))
 
